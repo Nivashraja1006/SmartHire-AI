@@ -1,14 +1,16 @@
+import os
 from app import create_app, socketio
 
 app = create_app()
+application = app  # 👈 IMPORTANT
 
-# This is REQUIRED for gunicorn
-application = app
-
-if __name__ == "__main__":
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    debug = app.config.get('DEBUG', True)
     socketio.run(
         app,
-        host="0.0.0.0",
-        port=5000,
-        debug=True
+        host='0.0.0.0',
+        port=port,
+        debug=debug,
+        allow_unsafe_werkzeug=True,
     )
