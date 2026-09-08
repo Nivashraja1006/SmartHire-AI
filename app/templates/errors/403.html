@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="empty-state container"><div class="empty-code">403</div><h1>Access restricted</h1><p>This workspace is reserved for another account role.</p><a class="btn btn-primary" href="{{ url_for('main.index') }}">Return home</a></section>
+{% endblock %}

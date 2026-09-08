@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero">
+    <div class="container hero-inner" style="text-align:center;">
+        <h1 class="hero-title" style="font-size: clamp(2.4rem, 5vw, 4rem);">
+            <span class="gradient-text">404</span>
+        </h1>
+        <p class="hero-subtitle">Page Not Found</p>
+        <p class="hero-desc">The page you're looking for doesn't exist or has moved.</p>
+        <div class="hero-ctas" style="justify-content:center;">
+            <a href="{{ url_for('main.index') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-house"></i> Back to Home
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

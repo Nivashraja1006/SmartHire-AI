@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="auth-shell">
+    <div class="auth-panel auth-panel-wide reveal is-visible">
+        <div class="eyebrow">Start with clarity</div>
+        <h1 class="auth-title">Create your account</h1>
+        <p class="auth-subtitle">Choose the workspace that matches how you contribute to hiring.</p>
+        <form method="post" class="auth-form" novalidate>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label for="full_name">Full name</label>
+            <input id="full_name" name="full_name" type="text" autocomplete="name" required maxlength="160" value="{{ request.form.get('full_name', '') }}" placeholder="Alex Morgan">
+
+            <label for="email">Email address</label>
+            <input id="email" name="email" type="email" autocomplete="email" required value="{{ request.form.get('email', '') }}" placeholder="you@example.com">
+
+            <div class="form-grid">
+                <div>
+                    <div class="field-heading"><label for="password">Password</label><button type="button" class="password-toggle" data-password-toggle="password">Show</button></div>
+                    <input id="password" name="password" type="password" autocomplete="new-password" required placeholder="8+ characters">
+                </div>
+                <div>
+                    <div class="field-heading"><label for="confirm_password">Confirm password</label><button type="button" class="password-toggle" data-password-toggle="confirm_password">Show</button></div>
+                    <input id="confirm_password" name="confirm_password" type="password" autocomplete="new-password" required placeholder="Repeat password">
+                </div>
+            </div>
+
+            <fieldset class="role-picker">
+                <legend>Account type</legend>
+                <div class="role-options">
+                    {% for role in roles %}
+                        <label class="role-option"><input type="radio" name="role" value="{{ role }}" {% if request.form.get('role') == role %}checked{% endif %} required><span><strong>{{ role }}</strong><small>{% if role == 'Recruiter' %}Build and manage hiring pipelines{% else %}Track your candidate journey{% endif %}</small></span></label>
+                    {% endfor %}
+                </div>
+            </fieldset>
+            <button type="submit" class="btn btn-primary auth-submit"><i class="fas fa-user-plus"></i> Create account</button>
+        </form>
+        <p class="auth-switch">Already registered? <a href="{{ url_for('auth.login') }}">Sign in</a></p>
+    </div>
+</section>
+{% endblock %}

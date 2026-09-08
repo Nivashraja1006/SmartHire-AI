@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="jobs-page container">
+    <div class="page-heading">
+        <div><div class="eyebrow">Recruiter workspace</div><h1 class="dashboard-title">Job requirements</h1><p class="dashboard-subtitle">Create structured requirements and keep every hiring brief current.</p></div>
+        <a class="btn btn-primary" href="{{ url_for('recruiter.create_job') }}"><i class="fas fa-plus"></i> Create job</a>
+    </div>
+    {% if jobs %}
+    <div class="job-table-wrap">
+        <table class="job-table"><thead><tr><th>Role</th><th>Company</th><th>Location</th><th>Skills</th><th>Experience</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+        <tbody>{% for job in jobs %}<tr>
+            <td><a class="table-title" href="{{ url_for('recruiter.view_job', job_id=job.id) }}">{{ job.title }}</a><span class="table-meta">{{ job.employment_type }}</span></td>
+            <td>{{ job.company_name }}</td><td>{{ job.location or 'Remote / flexible' }}</td>
+            <td><span class="count-pill">{{ job.job_skills.count() }} skills</span></td>
+            <td>{% if job.min_experience is not none %}{{ job.min_experience|int }}{% else %}Any{% endif %}{% if job.max_experience is not none %}–{{ job.max_experience|int }} yrs{% else %}+{% endif %}</td>
+            <td><span class="status-pill status-{{ job.status|lower }}">{{ job.status }}</span></td><td>{{ job.created_at.strftime('%b %d, %Y') }}</td>
+            <td><div class="table-actions"><a href="{{ url_for('recruiter.view_job', job_id=job.id) }}" title="View"><i class="fas fa-eye"></i></a><a href="{{ url_for('recruiter.edit_job', job_id=job.id) }}" title="Edit"><i class="fas fa-pen"></i></a><a href="{{ url_for('recruiter.analyze_job', job_id=job.id) }}" title="Analyze"><i class="fas fa-wand-magic-sparkles"></i></a><form method="post" action="{{ url_for('recruiter.toggle_job', job_id=job.id) }}"><button title="Activate or deactivate"><i class="fas fa-power-off"></i></button></form><form method="post" action="{{ url_for('recruiter.archive_job', job_id=job.id) }}"><button title="Archive"><i class="fas fa-box-archive"></i></button></form>{% if not job.applications.count() %}<form method="post" action="{{ url_for('recruiter.delete_job', job_id=job.id) }}" onsubmit="return confirm('Delete this job permanently?');"><button class="danger-icon" title="Delete"><i class="fas fa-trash"></i></button></form>{% endif %}</div></td>
+        </tr>{% endfor %}</tbody></table>
+    </div>
+    {% if jobs.pages > 1 %}<nav class="pagination" aria-label="Job pages">{% if jobs.has_prev %}<a href="{{ url_for('recruiter.jobs', page=jobs.prev_num) }}" aria-label="Previous page">Previous</a>{% endif %}<span>Page {{ jobs.page }} of {{ jobs.pages }}</span>{% if jobs.has_next %}<a href="{{ url_for('recruiter.jobs', page=jobs.next_num) }}" aria-label="Next page">Next</a>{% endif %}</nav>{% endif %}
+    {% else %}<div class="empty-state empty-state-short"><div class="empty-code"><i class="fas fa-briefcase"></i></div><h2>No jobs yet</h2><p>Create your first hiring brief and turn requirements into a clear workflow.</p><a class="btn btn-primary" href="{{ url_for('recruiter.create_job') }}">Create your first job</a></div>{% endif %}
+</section>
+{% endblock %}

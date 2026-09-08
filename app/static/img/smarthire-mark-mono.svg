@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-labelledby="title desc">
+  <title id="title">SmartHire AI monochrome mark</title>
+  <desc id="desc">A monochrome neural monogram combining a candidate profile and forward checkmark.</desc>
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="24" cy="14" r="4.15" stroke-width="2.2"/>
+    <path d="M15.3 30.6c.8-5.35 4.08-8.35 8.7-8.35 2.55 0 4.7.82 6.24 2.42M14.2 19.4v12.4M14.2 25.7h18.4M33.1 18.7v8.55l-4.7 4.1" stroke-width="2.5"/>
+    <path d="m27.9 31.1 3.4 3.05 7.1-8.15" stroke-width="2.7"/>
+  </g>
+  <circle cx="14.2" cy="19.4" r="1.8" fill="currentColor"/>
+  <circle cx="33.1" cy="18.7" r="1.8" fill="currentColor"/>
+</svg>

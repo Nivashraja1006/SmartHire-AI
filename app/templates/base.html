@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SmartHire AI - Real-Time AI-Powered Requirement Analysis and Candidate Ranking Platform">
+    <meta name="keywords" content="AI recruiting, resume analysis, candidate ranking, skill gap detection, HR tech, recruitment AI">
+    <meta name="author" content="SmartHire AI">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script>document.documentElement.dataset.theme = localStorage.getItem('smarthire-theme') || 'dark';</script>
+
+    <title>{% block title %}{{ title|default('SmartHire AI') }}{% endblock %}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/smarthire-mark.svg') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            950: '#020817'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif']
+                    },
+                    boxShadow: {
+                        glow: '0 10px 30px rgba(59,130,246,0.18)'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v='assistant-fix-1') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/premium.css', v='assistant-fix-1') }}">
+
+    {% block head_extra %}{% endblock %}
+</head>
+<body>
+    <canvas class="ambient-canvas" id="ambient-canvas" aria-hidden="true"></canvas>
+
+    <header class="w-full flex items-center justify-between px-6 py-4 bg-slate-900/80 backdrop-blur border-b border-slate-800 navbar premium-header" role="banner">
+        <div class="flex items-center gap-3 nav-left">
+            <a href="{{ url_for('main.index') }}" class="flex items-center gap-3 nav-logo" aria-label="SmartHire AI home">
+                <span class="w-10 h-10 overflow-hidden logo-icon">
+                    <img class="logo-svg" src="{{ url_for('static', filename='img/smarthire-mark.svg') }}" alt="SmartHire AI mark">
+                </span>
+                <span class="logo-text"><span class="logo-name">SmartHire</span><span class="logo-accent">AI</span></span>
+            </a>
+        </div>
+
+        <nav class="flex items-center gap-6 nav-center nav-links" aria-label="Primary navigation">
+                    {% if current_user.is_authenticated %}
+                        {% if current_user.role.name == 'Admin' %}
+                            <a href="{{ url_for('admin.dashboard') }}" class="nav-link {% if request.endpoint in ['admin.dashboard'] %}active{% endif %}">Workspace</a>
+                            <a href="{{ url_for('quality.system_health') }}" class="nav-link {% if request.endpoint == 'quality.system_health' %}active{% endif %}">Analytics</a>
+                        {% elif current_user.role.name == 'Recruiter' %}
+                            <a href="{{ url_for('recruiter.dashboard') }}" class="nav-link {% if request.endpoint in ['recruiter.dashboard', 'main.index'] %}active{% endif %}">Workspace</a>
+                            <a href="{{ url_for('analytics.recruiter_dashboard') }}" class="nav-link {% if request.endpoint == 'analytics.recruiter_dashboard' %}active{% endif %}">Analytics</a>
+                            <a href="{{ url_for('interviews.list_interviews') }}" class="nav-link {% if request.endpoint == 'interviews.list_interviews' %}active{% endif %}">Interviews</a>
+                            <a href="{{ url_for('recruiter_candidates.candidates') }}" class="nav-link {% if request.endpoint == 'recruiter_candidates.candidates' %}active{% endif %}">Candidates</a>
+                        {% else %}
+                            <a href="{{ url_for('candidate.dashboard') }}" class="nav-link {% if request.endpoint == 'candidate.dashboard' %}active{% endif %}">Workspace</a>
+                            <a href="{{ url_for('candidate.resumes') }}" class="nav-link {% if request.endpoint == 'candidate.resumes' %}active{% endif %}">My resumes</a>
+                        {% endif %}
+                    {% endif %}
+                    {% if not current_user.is_authenticated %}
+                        <a href="{{ url_for('auth.login', next=url_for('recruiter.dashboard')) }}" class="nav-link">Workspace</a>
+                        <a href="{{ url_for('auth.login', next=url_for('analytics.recruiter_dashboard')) }}" class="nav-link">Analytics</a>
+                        <a href="{{ url_for('auth.login', next=url_for('interviews.list_interviews')) }}" class="nav-link">Interviews</a>
+                        <a href="{{ url_for('auth.login', next=url_for('recruiter_candidates.candidates')) }}" class="nav-link">Candidates</a>
+                    {% endif %}
+            </nav>
+
+            <div class="flex items-center gap-4 nav-right">
+                {% if current_user.is_authenticated %}
+                    {% if current_user.role.name in ('Recruiter', 'Admin') %}
+                        <div class="status-pill" aria-label="Connection status">
+                            <span class="status-dot"></span>
+                            <span class="status-label">Connecting</span>
+                        </div>
+                        <div class="notification-wrap">
+                            <button class="notification-button" id="notification-button" aria-label="Open notifications">
+                                <i class="fas fa-bell"></i>
+                                <span id="notification-count" class="notification-count" hidden>0</span>
+                            </button>
+                            <div class="notification-panel" id="notification-panel" hidden>
+                                <div class="notification-panel-head">
+                                    <strong>Notifications</strong>
+                                    <button id="mark-all-read" type="button">Mark all read</button>
+                                </div>
+                                <div id="notification-list">
+                                    <p class="notification-empty">No notifications yet.</p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="nav-user-wrap">
+                        <span class="user-avatar">{{ current_user.full_name[:2]|upper }}</span>
+                        <span class="nav-user">{{ current_user.full_name }}</span>
+                    </div>
+
+                    <form method="post" action="{{ url_for('auth.logout') }}" class="inline-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-ghost btn-sm nav-signout">Sign out</button>
+                    </form>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="nav-link nav-auth-link">Sign in</a>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm">Create account</a>
+                {% endif %}
+                <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch to light mode" title="Switch theme">
+                    <i class="fas fa-sun"></i>
+                </button>
+        </div>
+
+        <button class="nav-toggle" aria-label="Toggle navigation">
+                <i class="fas fa-bars"></i>
+        </button>
+    </header>
+
+    <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-stack container">
+                    {% for category, message in messages %}
+                        <div class="flash flash-{{ category }}" role="alert">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-inner">
+            <div class="footer-brand">
+                <div class="nav-logo">
+                    <span class="w-10 h-10 overflow-hidden logo-icon"><img class="logo-svg" src="{{ url_for('static', filename='img/smarthire-mark.svg') }}" alt="SmartHire AI mark"></span>
+                    <span class="logo-text"><span class="logo-name">SmartHire</span><span class="logo-accent">AI</span></span>
+                </div>
+                <p class="footer-tagline">Real-time AI-powered candidate intelligence for modern recruitment teams.</p>
+            </div>
+            <div class="footer-copy">
+                &copy; <span id="yr"></span> SmartHire AI &middot; B.Sc. Computer Science Final Year Project
+            </div>
+        </div>
+    </footer>
+
+    <div class="assistant-fab-wrap" aria-live="polite" data-chat-endpoint="{% if current_user.is_authenticated and current_user.role.name == 'Recruiter' %}{{ url_for('copilot.chat') }}{% endif %}">
+        <section class="assistant-panel" id="assistant-panel" aria-label="SmartHire AI assistant" aria-hidden="true" hidden>
+            <div class="assistant-header">
+                <div class="assistant-title">
+                    <span class="assistant-badge"></span>
+                    SmartHire AI
+                </div>
+                <button type="button" class="assistant-close" aria-label="Close assistant" data-assistant-close>
+                    <i class="fas fa-xmark"></i>
+                </button>
+            </div>
+            <div class="assistant-body" id="assistant-messages" role="log" aria-live="polite" aria-relevant="additions">
+                <div class="assistant-empty" data-assistant-empty>
+                    <span class="assistant-empty-icon"><i class="fas fa-sparkles"></i></span>
+                    <strong>Ask me anything about your hiring pipeline.</strong>
+                    <span>Try asking about candidate fit, skill gaps, or shortlist quality.</span>
+                </div>
+                <div class="assistant-typing" data-assistant-typing hidden aria-label="SmartHire AI is typing">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+            <form class="assistant-composer" data-assistant-form>
+                <textarea rows="1" maxlength="1000" aria-label="Message SmartHire AI" placeholder="Ask SmartHire AI..."></textarea>
+                <button type="submit" class="btn btn-primary btn-sm" data-assistant-send>
+                    <i class="fas fa-arrow-up"></i><span>Send</span>
+                </button>
+            </form>
+        </section>
+
+        <button type="button" class="assistant-fab" id="assistant-fab" aria-label="Open AI assistant" aria-expanded="false" aria-controls="assistant-panel">
+            <span class="assistant-icon"><i class="fas fa-wand-sparkles"></i></span>
+        </button>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js', v='assistant-fix-1') }}"></script>
+    <script src="{{ url_for('static', filename='js/premium.js', v='assistant-fix-1') }}"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script>document.getElementById('yr').textContent = new Date().getFullYear();</script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-labelledby="title desc">
+  <title id="title">SmartHire AI mark</title>
+  <desc id="desc">A dimensional neural monogram combining a candidate profile, connected hiring signals, and a forward checkmark.</desc>
+  <defs>
+    <linearGradient id="mark-gradient" x1="9" y1="7" x2="40" y2="42" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#93C5FD"/>
+      <stop offset=".42" stop-color="#3B82F6"/>
+      <stop offset="1" stop-color="#8B5CF6"/>
+    </linearGradient>
+    <linearGradient id="mark-highlight" x1="13" y1="10" x2="34" y2="35" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity=".94"/>
+      <stop offset="1" stop-color="#BFDBFE" stop-opacity=".76"/>
+    </linearGradient>
+    <filter id="mark-shadow" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="1.8" stdDeviation="1.6" flood-color="#020617" flood-opacity=".55"/>
+    </filter>
+  </defs>
+
+  <path d="M24 4.8 40.7 14v19.2L24 42.5 7.3 33.2V14L24 4.8Z" fill="url(#mark-gradient)" fill-opacity=".12" stroke="url(#mark-gradient)" stroke-opacity=".55" stroke-width="1.2"/>
+  <path d="M24 7.2 38.5 15v16.5L24 39.7 9.5 31.5V15L24 7.2Z" fill="none" stroke="#BFDBFE" stroke-opacity=".13" stroke-width=".8"/>
+
+  <g filter="url(#mark-shadow)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="24" cy="14" r="4.15" fill="url(#mark-highlight)" stroke="#fff" stroke-width="1.15"/>
+    <path d="M15.3 30.6c.8-5.35 4.08-8.35 8.7-8.35 2.55 0 4.7.82 6.24 2.42" stroke="url(#mark-highlight)" stroke-width="2.5"/>
+    <path d="M14.2 19.4v12.4M14.2 25.7h18.4M33.1 18.7v8.55l-4.7 4.1" stroke="url(#mark-gradient)" stroke-width="2.55"/>
+    <path d="m27.9 31.1 3.4 3.05 7.1-8.15" stroke="#fff" stroke-width="2.7"/>
+  </g>
+
+  <circle cx="14.2" cy="19.4" r="1.9" fill="#93C5FD"/>
+  <circle cx="33.1" cy="18.7" r="1.9" fill="#C4B5FD"/>
+  <circle cx="38.4" cy="26" r="1.9" fill="#A5B4FC"/>
+</svg>

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="auth-shell">
+    <div class="auth-panel reveal is-visible">
+        <div class="eyebrow">Welcome back</div>
+        <h1 class="auth-title">Sign in to SmartHire AI</h1>
+        <p class="auth-subtitle">Continue to your hiring intelligence workspace.</p>
+        <form method="post" class="auth-form" novalidate>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label for="email">Email address</label>
+            <input id="email" name="email" type="email" autocomplete="email" required value="{{ request.form.get('email', '') }}" placeholder="you@company.com">
+
+            <div class="field-heading">
+                <label for="password">Password</label>
+                <button type="button" class="password-toggle" data-password-toggle="password">Show</button>
+            </div>
+            <input id="password" name="password" type="password" autocomplete="current-password" required placeholder="Enter your password">
+
+            <label class="check-row"><input type="checkbox" name="remember"> <span>Remember me</span></label>
+            <button type="submit" class="btn btn-primary auth-submit"><i class="fas fa-arrow-right-to-bracket"></i> Sign in</button>
+        </form>
+        <p class="auth-switch">New to SmartHire AI? <a href="{{ url_for('auth.register') }}">Create an account</a></p>
+    </div>
+</section>
+{% endblock %}

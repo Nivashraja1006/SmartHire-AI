@@ -1,0 +1,482 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="upload-container">
+    <!-- Header -->
+    <div class="glass rounded-2xl p-8 mb-8 slide-down">
+        <h1 class="text-4xl font-bold text-white mb-2 gradient-text">
+            <i class="fas fa-file-upload mr-3"></i>Resume Upload & Matching
+        </h1>
+        <p class="text-gray-400">Upload resumes and match them against job requirements using AI</p>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Upload Section (Left) -->
+        <div class="lg:col-span-2">
+            <!-- Job Selection -->
+            <div class="glass rounded-2xl p-8 mb-8 slide-up" style="animation-delay: 0.1s">
+                <h2 class="text-2xl font-bold text-white mb-4">
+                    <i class="fas fa-briefcase mr-2 text-purple-400"></i>Select Job Position
+                </h2>
+                <select id="jobSelect" class="form-select w-full mb-4">
+                    <option value="">-- Choose a job --</option>
+                    {% for job in jobs %}
+                        <option value="{{ job.id }}">{{ job.title }} - {{ job.company_name }}</option>
+                    {% endfor %}
+                </select>
+                <div id="jobDetails" class="hidden mt-4 p-4 bg-opacity-5 bg-purple-500 rounded-lg">
+                    <h3 class="text-lg font-semibold text-white mb-2" id="jobTitle"></h3>
+                    <p class="text-gray-300 text-sm" id="jobDesc"></p>
+                </div>
+            </div>
+
+            <!-- Upload Drop Zone -->
+            <div class="glass rounded-2xl p-12 mb-8 slide-up border-2 border-dashed border-purple-400 hover:border-purple-300 transition-all cursor-pointer hover:bg-opacity-20 text-center" id="dropZone" style="animation-delay: 0.2s">
+                <div class="mb-4">
+                    <i class="fas fa-cloud-upload-alt text-5xl text-purple-400"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-2">Drop Resumes Here</h3>
+                <p class="text-gray-400 mb-4">or click to select PDF/DOCX files</p>
+                <input type="file" id="fileInput" multiple accept=".pdf,.docx,.doc" class="hidden">
+                <button class="btn-primary text-white px-6 py-3 rounded-lg font-semibold">
+                    <i class="fas fa-plus mr-2"></i>Select Files
+                </button>
+                <p class="text-gray-500 text-xs mt-4">Supported formats: PDF, DOCX (Max 10 files, 25MB each)</p>
+            </div>
+
+            <!-- Upload Progress -->
+            <div id="uploadProgress" class="hidden glass rounded-2xl p-8 mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-white">Uploading Resumes...</h3>
+                    <span class="text-sm text-gray-400" id="uploadPercentage">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+                <p class="text-sm text-gray-400 mt-2" id="uploadStatus">Initializing...</p>
+            </div>
+
+            <!-- Uploaded Files List -->
+            <div id="uploadedList" class="glass rounded-2xl p-8">
+                <h3 class="text-xl font-bold text-white mb-4">
+                    <i class="fas fa-check-circle mr-2 text-green-400"></i>Uploaded Resumes
+                </h3>
+                <div id="filesList" class="space-y-2">
+                    <p class="text-gray-400 text-center py-8">No files uploaded yet</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar (Right) -->
+        <div>
+            <!-- Analysis Info -->
+            <div class="glass rounded-2xl p-6 mb-6 slide-up" style="animation-delay: 0.3s">
+                <h3 class="text-lg font-bold text-white mb-4">
+                    <i class="fas fa-info-circle mr-2 text-blue-400"></i>What We Extract
+                </h3>
+                <ul class="space-y-2 text-sm text-gray-300">
+                    <li class="flex items-start">
+                        <i class="fas fa-check text-green-400 mr-2 mt-1"></i>
+                        <span>Full name & contact info</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check text-green-400 mr-2 mt-1"></i>
+                        <span>Technical skills & expertise</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check text-green-400 mr-2 mt-1"></i>
+                        <span>Work experience & tenure</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check text-green-400 mr-2 mt-1"></i>
+                        <span>Education & certifications</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check text-green-400 mr-2 mt-1"></i>
+                        <span>Projects & accomplishments</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Stats -->
+            <div class="glass rounded-2xl p-6 mb-6 slide-up" style="animation-delay: 0.4s">
+                <h3 class="text-lg font-bold text-white mb-4">
+                    <i class="fas fa-chart-line mr-2 text-green-400"></i>Upload Stats
+                </h3>
+                <div class="space-y-3">
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="text-gray-400">Files</span>
+                            <span class="text-white font-semibold" id="fileCount">0</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="text-gray-400">Processed</span>
+                            <span class="text-white font-semibold" id="processedCount">0</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="text-gray-400">Success Rate</span>
+                            <span class="text-white font-semibold" id="successRate">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="glass rounded-2xl p-6 slide-up" style="animation-delay: 0.5s">
+                <button class="w-full btn-primary text-white px-4 py-3 rounded-lg font-semibold mb-3" id="matchBtn" disabled>
+                    <i class="fas fa-link mr-2"></i>Match Candidates
+                </button>
+                <button class="w-full btn-secondary text-white px-4 py-3 rounded-lg font-semibold">
+                    <i class="fas fa-download mr-2"></i>Download Results
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div id="resultsSection" class="hidden mt-12">
+        <h2 class="text-3xl font-bold text-white mb-6">
+            <i class="fas fa-ranking-star mr-3 text-yellow-400"></i>Ranking Results
+        </h2>
+        <div id="resultsList" class="grid grid-cols-1 gap-6">
+            <!-- Results will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<style>
+    .upload-container {
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .form-select {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+        font-family: inherit;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .form-select:hover,
+    .form-select:focus {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(102, 126, 234, 0.6);
+        outline: none;
+    }
+
+    .form-select option {
+        background: #1a1a2e;
+        color: white;
+    }
+
+    #dropZone {
+        transition: all 0.3s ease;
+    }
+
+    #dropZone.highlight {
+        background: rgba(102, 126, 234, 0.2);
+        border-color: #667eea;
+    }
+
+    .file-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 0.5rem;
+        animation: slideUp 0.3s ease-out;
+    }
+
+    .file-item .file-name {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: white;
+    }
+
+    .file-item .file-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .file-item .status-loading {
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .result-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        animation: slideUp 0.4s ease-out backwards;
+    }
+
+    .result-card:nth-child(1) { animation-delay: 0.1s; }
+    .result-card:nth-child(2) { animation-delay: 0.2s; }
+    .result-card:nth-child(3) { animation-delay: 0.3s; }
+
+    .score-badge {
+        display: inline-block;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+
+    .score-excellent {
+        background: rgba(34, 197, 94, 0.2);
+        color: #86efac;
+    }
+
+    .score-strong {
+        background: rgba(59, 130, 246, 0.2);
+        color: #93c5fd;
+    }
+
+    .score-good {
+        background: rgba(168, 85, 247, 0.2);
+        color: #d8b4fe;
+    }
+
+    .score-moderate {
+        background: rgba(251, 146, 60, 0.2);
+        color: #fdba74;
+    }
+
+    .score-low {
+        background: rgba(239, 68, 68, 0.2);
+        color: #fca5a5;
+    }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script>
+    // File upload handling
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const filesList = document.getElementById('filesList');
+    const uploadProgress = document.getElementById('uploadProgress');
+    const progressFill = document.getElementById('progressFill');
+    const uploadStatus = document.getElementById('uploadStatus');
+    const uploadPercentage = document.getElementById('uploadPercentage');
+    const matchBtn = document.getElementById('matchBtn');
+    const jobSelect = document.getElementById('jobSelect');
+    
+    let uploadedFiles = [];
+
+    // Drop zone click
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    // File input change
+    fileInput.addEventListener('change', (e) => {
+        handleFiles(e.target.files);
+    });
+
+    // Drag and drop
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('highlight');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('highlight');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('highlight');
+        handleFiles(e.dataTransfer.files);
+    });
+
+    // Handle file upload
+    async function handleFiles(files) {
+        uploadProgress.classList.remove('hidden');
+        uploadedFiles = [];
+
+        const totalFiles = files.length;
+        let completed = 0;
+
+        for (let file of files) {
+            await uploadFile(file);
+            completed++;
+            updateProgress(completed, totalFiles);
+        }
+
+        displayUploadedFiles();
+        if (uploadedFiles.length > 0) {
+            matchBtn.disabled = false;
+        }
+    }
+
+    async function uploadFile(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const jobId = jobSelect.value;
+        if (!jobId) {
+            alert('Please select a job position first');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/ranking/upload-resume?job_id=' + jobId, {
+                method: 'POST',
+                body: formData,
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                uploadedFiles.push(data.data);
+                uploadStatus.textContent = `Successfully uploaded: ${file.name}`;
+            } else {
+                uploadStatus.textContent = `Error uploading ${file.name}: ${data.error}`;
+            }
+        } catch (error) {
+            uploadStatus.textContent = `Error uploading ${file.name}`;
+            console.error('Upload error:', error);
+        }
+    }
+
+    function updateProgress(completed, total) {
+        const percentage = Math.round((completed / total) * 100);
+        progressFill.style.width = percentage + '%';
+        uploadPercentage.textContent = percentage + '%';
+        document.getElementById('fileCount').textContent = uploadedFiles.length;
+        document.getElementById('processedCount').textContent = completed;
+        document.getElementById('successRate').textContent = ((completed / total) * 100).toFixed(0) + '%';
+    }
+
+    function displayUploadedFiles() {
+        filesList.innerHTML = '';
+        if (uploadedFiles.length === 0) {
+            filesList.innerHTML = '<p class="text-gray-400 text-center py-8">No files uploaded yet</p>';
+            return;
+        }
+
+        uploadedFiles.forEach((file, index) => {
+            const item = document.createElement('div');
+            item.className = 'file-item';
+            item.style.animationDelay = `${index * 0.1}s`;
+            item.innerHTML = `
+                <div class="file-name">
+                    <i class="fas fa-file-pdf text-red-400"></i>
+                    <span>${file.candidate_name}</span>
+                </div>
+                <div class="file-status">
+                    <span class="text-green-400 font-semibold">✓</span>
+                    <span class="text-gray-400 text-sm">Parsed</span>
+                </div>
+            `;
+            filesList.appendChild(item);
+        });
+    }
+
+    // Job selection
+    jobSelect.addEventListener('change', (e) => {
+        if (e.target.value) {
+            // Load job details
+            const jobDetails = document.getElementById('jobDetails');
+            jobDetails.classList.remove('hidden');
+        }
+    });
+
+    // Match candidates
+    matchBtn.addEventListener('click', async () => {
+        const jobId = jobSelect.value;
+        if (!jobId) {
+            alert('Please select a job position');
+            return;
+        }
+
+        matchBtn.disabled = true;
+        matchBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Matching...';
+
+        try {
+            const response = await fetch('/api/ranking/rank', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ job_id: parseInt(jobId) }),
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                displayResults(data.data.ranked_candidates);
+                document.getElementById('resultsSection').classList.remove('hidden');
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch (error) {
+            alert('Error matching candidates: ' + error.message);
+            console.error('Match error:', error);
+        } finally {
+            matchBtn.disabled = false;
+            matchBtn.innerHTML = '<i class="fas fa-link mr-2"></i>Match Candidates';
+        }
+    });
+
+    function displayResults(candidates) {
+        const resultsList = document.getElementById('resultsList');
+        resultsList.innerHTML = '';
+
+        candidates.forEach((candidate, index) => {
+            const scoreClass = candidate.overall_score >= 90 ? 'score-excellent' : 
+                             candidate.overall_score >= 75 ? 'score-strong' :
+                             candidate.overall_score >= 60 ? 'score-good' :
+                             candidate.overall_score >= 40 ? 'score-moderate' : 'score-low';
+
+            const card = document.createElement('div');
+            card.className = 'result-card';
+            card.style.animationDelay = `${index * 0.1}s`;
+            card.innerHTML = `
+                <div class="flex items-start justify-between mb-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-white">#${candidate.rank} - ${candidate.candidate_name}</h3>
+                        <p class="text-gray-400">${candidate.candidate_email}</p>
+                    </div>
+                    <div class="score-badge ${scoreClass}">
+                        ${candidate.overall_score.toFixed(0)}%
+                    </div>
+                </div>
+                <div class="space-y-2 mb-4">
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="text-gray-300 text-sm">Match Score</span>
+                            <span class="text-white font-semibold">${candidate.overall_score.toFixed(1)}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${candidate.overall_score}%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="badge badge-${candidate.recommendation.toLowerCase().replace(' ', '-')}">${candidate.recommendation}</span>
+                    <button class="text-purple-400 hover:text-purple-300 text-sm">View Details →</button>
+                </div>
+            `;
+            resultsList.appendChild(card);
+        });
+    }
+</script>
+{% endblock %}

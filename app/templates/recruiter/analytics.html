@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="dashboard-shell container analytics-page" data-overview-url="{{ url_for('analytics.recruiter_overview') }}" data-trends-url="{{ url_for('analytics.recruiter_trends') }}">
+    <div class="dashboard-heading reveal is-visible"><div><div class="eyebrow">Recruiter intelligence</div><h1 class="dashboard-title">Recruitment Analytics</h1><p class="dashboard-subtitle">A live view of your hiring pipeline and candidate supply.</p></div><div class="analytics-actions"><select id="trend-days" aria-label="Trend range"><option value="7">7 days</option><option value="30" selected>30 days</option><option value="90">90 days</option></select><a class="btn btn-outline btn-sm" href="{{ url_for('analytics.export_report', report='summary') }}"><i class="fas fa-download"></i> Summary CSV</a></div></div>
+    <div class="dashboard-metrics analytics-kpis" id="analytics-kpis"></div>
+    <div class="analytics-grid">
+        <article class="dashboard-card analytics-panel"><div class="section-label">Recruitment funnel</div><div id="funnel-list" class="funnel-list"><p class="helper-text">Loading funnel...</p></div></article>
+        <article class="dashboard-card analytics-panel"><div class="section-label">Match score distribution</div><canvas id="score-chart" height="220"></canvas></article>
+        <article class="dashboard-card analytics-panel analytics-wide"><div class="section-label">Applications and average match score</div><canvas id="trend-chart" height="120"></canvas></article>
+        <article class="dashboard-card analytics-panel"><div class="section-label">Job performance</div><div id="job-list"><p class="helper-text">Loading jobs...</p></div><a class="text-link" href="{{ url_for('analytics.export_report', report='jobs') }}">Export job report <i class="fas fa-arrow-right"></i></a></article>
+        <article class="dashboard-card analytics-panel"><div class="section-label">Skill gap analysis</div><p class="helper-text">Select a job to inspect missing required skills.</p><div id="skill-list"></div></article>
+        <article class="dashboard-card analytics-panel analytics-wide"><div class="section-label">Hiring insights</div><div id="insight-list"><p class="helper-text">Loading insights...</p></div></article>
+    </div>
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+(async function () {
+    const page = document.querySelector('.analytics-page');
+    const kpis = document.getElementById('analytics-kpis');
+    const requestJson = async (url) => { const response = await fetch(url); if (!response.ok) throw new Error(`Request failed (${response.status})`); return response.json(); };
+    const overview = await requestJson(page.dataset.overviewUrl);
+    const data = overview.overview;
+    const cards = [['total_jobs', 'Total jobs'], ['active_jobs', 'Active jobs'], ['total_candidates', 'Candidates'], ['total_applications', 'Applications'], ['shortlisted', 'Shortlisted'], ['interviews', 'Interviews'], ['average_match_score', 'Avg match', '%'], ['hiring_conversion_rate', 'Hiring conversion', '%']];
+    kpis.innerHTML = cards.map(([key, label, suffix]) => `<div><strong>${data[key]}${suffix || ''}</strong><span>${label}</span></div>`).join('');
+    document.addEventListener('analytics-updated', async () => { const updated = (await requestJson(page.dataset.overviewUrl)).overview; cards.forEach(([key, , suffix], index) => { kpis.children[index].querySelector('strong').textContent = `${updated[key]}${suffix || ''}`; }); });
+    const jobs = data.jobs || [];
+    document.getElementById('job-list').innerHTML = jobs.length ? jobs.map(job => `<div class="analytics-row"><span>${job.title}</span><strong>${job.applications} apps · ${job.average_match_score}% avg</strong></div>`).join('') : '<p class="helper-text">No data available yet.</p>';
+    if (jobs[0]) loadSkills(jobs[0].job_id);
+    if (jobs[0]) { const insightUrl = `{{ url_for('quality.hiring_insights', job_id=0) }}`.replace('/0', `/${jobs[0].job_id}`); const insightResult = await requestJson(insightUrl); const insightData = insightResult.insights || {}; document.getElementById('insight-list').innerHTML = [...(insightData.insights || []), ...(insightData.recommendations || []).map(item => `Recommendation: ${item}`)].map(item => `<div class="analytics-row"><span>${item}</span></div>`).join('') || '<p class="helper-text">No insights available yet.</p>'; }
+    const funnel = jobs[0] ? await fetch(`/api/recruiter/analytics/funnel/${jobs[0].job_id}`).then(r => r.json()) : {funnel: {}};
+    const funnelData = funnel.funnel || {};
+    document.getElementById('funnel-list').innerHTML = ['applications', 'analyzed', 'strong_matches', 'shortlisted', 'interviewed', 'selected'].map(key => `<div class="funnel-row"><span>${key.replace('_', ' ')}</span><strong>${funnelData[key] || 0}</strong></div>`).join('');
+    new Chart(document.getElementById('score-chart'), {type: 'doughnut', data: {labels: ['Excellent', 'Strong', 'Good', 'Moderate', 'Low'], datasets: [{data: [data.excellent || 0, data.strong || 0, data.good || 0, data.moderate || 0, data.low || 0], backgroundColor: ['#34d399', '#22d3ee', '#818cf8', '#fbbf24', '#fb7185']}]}, options: {plugins: {legend: {position: 'bottom'}}}});
+    async function loadSkills(jobId) { const result = await fetch(`/api/recruiter/analytics/skills/${jobId}`).then(r => r.json()); document.getElementById('skill-list').innerHTML = (result.skills?.gaps || []).slice(0, 8).map(item => `<div class="skill-gap"><span>${item.skill}</span><strong>${item.missing_percent}% missing</strong></div>`).join('') || '<p class="helper-text">No required skills found.</p>'; }
+    async function loadTrends() { const days = document.getElementById('trend-days').value; const result = await fetch(`${page.dataset.trendsUrl}?days=${days}`).then(r => r.json()); const labels = result.trends.applications.map(item => item.date); new Chart(document.getElementById('trend-chart'), {type: 'line', data: {labels, datasets: [{label: 'Applications', data: result.trends.applications.map(item => item.count), borderColor: '#22d3ee', tension: .3}, {label: 'Average score', data: result.trends.scores.map(item => item.average), borderColor: '#a78bfa', tension: .3}]}, options: {responsive: true, scales: {y: {beginAtZero: true}}}}); }
+    loadTrends(); document.getElementById('trend-days').addEventListener('change', loadTrends);
+})();
+</script>
+{% endblock %}

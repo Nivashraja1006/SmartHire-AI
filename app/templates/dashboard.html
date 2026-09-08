@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if role == 'Recruiter' %}
+<section class="dashboard-shell command-center container" data-dashboard-url="{{ url_for('notifications.dashboard_data') }}">
+    <div class="command-heading reveal is-visible">
+        <div>
+            <div class="eyebrow">Recruitment intelligence / live workspace</div>
+            <h1 class="dashboard-title">Good to see you, {{ current_user.full_name.split(' ')[0] }}.</h1>
+            <p class="dashboard-subtitle">Your hiring pipeline, distilled into the signals that deserve attention.</p>
+        </div>
+        <div class="command-actions"><span class="live-badge"><i></i><span data-live-copy>Live sync</span></span><a class="btn btn-primary" href="{{ url_for('recruiter.jobs') }}"><i class="fas fa-plus"></i> New job</a></div>
+    </div>
+
+    <div class="command-kpis reveal is-visible">
+        <article class="command-kpi"><span>Total candidates</span><strong data-metric="total_candidates">—</strong><small><i class="fas fa-arrow-trend-up"></i> Profiles in your pipeline</small></article>
+        <article class="command-kpi"><span>Active jobs</span><strong data-metric="active_jobs">—</strong><small><i class="fas fa-bolt"></i> Currently accepting talent</small></article>
+        <article class="command-kpi"><span>Average match</span><strong><span data-metric="average_match_score">—</span><em>%</em></strong><small><i class="fas fa-sparkles"></i> AI match quality</small></article>
+        <article class="command-kpi"><span>Shortlisted</span><strong data-metric="shortlisted_candidates">—</strong><small><i class="fas fa-check"></i> Ready for next step</small></article>
+    </div>
+
+    <div class="command-grid">
+        <article class="command-panel chart-panel reveal is-visible">
+            <div class="panel-heading"><div><span class="panel-label">Pipeline health</span><h2>Candidate distribution</h2></div><span class="panel-live"><i></i> Updating</span></div>
+            <div class="chart-wrap"><canvas id="candidate-doughnut" aria-label="Candidate distribution chart"></canvas><div class="chart-center"><strong id="candidate-total">—</strong><span>Total candidates</span></div></div>
+            <div class="chart-legend"><span><i class="legend-dot legend-blue"></i>New profiles</span><span><i class="legend-dot legend-cyan"></i>Analyzed</span><span><i class="legend-dot legend-green"></i>Shortlisted</span></div>
+        </article>
+        <article class="command-panel funnel-panel reveal is-visible">
+            <div class="panel-heading"><div><span class="panel-label">Conversion flow</span><h2>Recruitment funnel</h2></div><a href="{{ url_for('analytics.recruiter_dashboard') }}" class="panel-link">View analytics <i class="fas fa-arrow-up-right-from-square"></i></a></div>
+            <div class="funnel-list"><div class="funnel-item"><div><span>All candidates</span><strong data-funnel="candidates">—</strong></div><div class="funnel-track"><i data-funnel-bar="candidates"></i></div></div><div class="funnel-item"><div><span>Analyzed</span><strong data-funnel="analyzed">—</strong></div><div class="funnel-track"><i data-funnel-bar="analyzed"></i></div></div><div class="funnel-item"><div><span>Shortlisted</span><strong data-funnel="shortlisted">—</strong></div><div class="funnel-track"><i data-funnel-bar="shortlisted"></i></div></div><div class="funnel-item"><div><span>Open roles</span><strong data-funnel="jobs">—</strong></div><div class="funnel-track"><i data-funnel-bar="jobs"></i></div></div></div>
+        </article>
+        <article class="command-panel activity-panel command-activity reveal is-visible">
+            <div class="panel-heading"><div><span class="panel-label">Live stream</span><h2>Recent activity</h2></div><span class="activity-pulse"><i></i> Real time</span></div>
+            <div id="activity-feed"><p class="helper-text">Syncing workspace activity...</p></div>
+        </article>
+    </div>
+</section>
+{% else %}
+<section class="dashboard-shell container">
+    <div class="dashboard-heading reveal is-visible">
+        <div>
+            <div class="eyebrow">{{ role }} workspace / overview</div>
+            <h1 class="dashboard-title">Good to see you, {{ current_user.full_name.split(' ')[0] }}.</h1>
+            <p class="dashboard-subtitle">A clear view of your hiring work, signals, and next best action.</p>
+        </div>
+        <div class="dashboard-heading-actions"><div class="status-chip"><span></span> Account active</div>{% if role == 'Recruiter' %}<a class="btn btn-primary" href="{{ url_for('recruiter.jobs') }}"><i class="fas fa-plus"></i> New job</a>{% else %}<a class="btn btn-primary" href="{{ url_for('candidate.resumes') }}"><i class="fas fa-file-arrow-up"></i> Add resume</a>{% endif %}</div>
+    </div>
+    {% if role == 'Recruiter' %}<div class="dashboard-metrics dashboard-kpis reveal is-visible"><div><span>Total jobs</span><strong data-metric="total_jobs">—</strong><small>Across your workspace</small></div><div><span>Active jobs</span><strong data-metric="active_jobs">—</strong><small>Currently accepting talent</small></div><div><span>Candidates</span><strong data-metric="total_candidates">—</strong><small>Profiles in your pipeline</small></div><div><span>Average score</span><strong data-metric="average_match_score">—</strong><small>AI match quality</small></div></div>{% else %}<div class="dashboard-metrics dashboard-kpis candidate-kpis reveal is-visible"><div><span>Average match</span><strong>{{ average_match_score }}%</strong><small>Across your applications</small></div><div><span>Applications</span><strong>{{ applications|length }}</strong><small>Recent opportunities</small></div><div><span>Profile status</span><strong>Ready</strong><small>Keep your resume current</small></div></div>{% endif %}
+    <div class="dashboard-grid">
+        <article class="dashboard-card dashboard-card-primary dashboard-feature reveal is-visible"><div class="feature-top"><div class="card-icon"><i class="fas fa-sparkles"></i></div><span class="card-kicker">Smart signal</span></div><h2>{% if role == 'Candidate' %}Make your next match count{% else %}Your hiring command center{% endif %}</h2><p>{% if role == 'Candidate' %}Your match score combines job-relevant skills, experience, education, certifications, projects, and semantic relevance. Protected attributes are never used.{% else %}Realtime hiring activity, AI analysis, and ranking updates are ready when you are.{% endif %}</p>{% if role == 'Recruiter' %}<a class="text-link" href="{{ url_for('recruiter.jobs') }}">Review jobs <i class="fas fa-arrow-right"></i></a>{% else %}<a class="text-link" href="{{ url_for('candidate.resumes') }}">Manage resumes <i class="fas fa-arrow-right"></i></a>{% endif %}</article>
+        <article class="dashboard-card reveal is-visible"><div class="card-icon"><i class="fas fa-shield-halved"></i></div><h2>Private by default</h2><p>Your workspace is protected by account sessions, role permissions, and explainable AI workflows.</p><div class="card-foot"><span class="status-dot"></span> Secure workspace</div></article>
+        {% if role == 'Candidate' %}<article class="dashboard-card reveal is-visible"><div class="card-icon"><i class="fas fa-chart-line"></i></div><h2>Matching snapshot</h2><div class="candidate-snapshot"><strong>{{ average_match_score }}%</strong><span>Average match score</span></div><p>{{ applications|length }} recent application{{ '' if applications|length == 1 else 's' }} in your workspace.</p></article>{% else %}<article class="dashboard-card reveal is-visible"><div class="card-icon"><i class="fas fa-bolt"></i></div><h2>Move with signal</h2><p>Review candidates, ranking explanations, interviews, analytics, and Copilot from the workspace navigation.</p><a class="text-link" href="{{ url_for('recruiter_candidates.candidates') }}">View candidates <i class="fas fa-arrow-right"></i></a></article>{% endif %}
+    </div>
+    {% if role == 'Candidate' %}<section class="dashboard-card application-list reveal is-visible"><div class="section-label">Recent applications</div>{% if applications %}{% for application in applications %}<div class="application-row"><div><strong>{{ application.job.title }}</strong><span>{{ application.job.company_name }} · {{ application.status }}</span></div><strong>{% if application.score %}{{ application.score.overall_score|round(1) }}%{% else %}Pending{% endif %}</strong></div>{% endfor %}{% else %}<div class="empty-state"><i class="fas fa-inbox"></i><h3>No applications yet</h3><p>Your matched opportunities will appear here.</p></div>{% endif %}</section>{% endif %}
+    {% if role == 'Recruiter' %}<div class="live-dashboard" data-dashboard-url="{{ url_for('notifications.dashboard_data') }}"><div class="dashboard-metrics"><div><strong data-metric="total_jobs">—</strong><span>Total jobs</span></div><div><strong data-metric="active_jobs">—</strong><span>Active jobs</span></div><div><strong data-metric="total_candidates">—</strong><span>Candidates</span></div><div><strong data-metric="analyzed_candidates">—</strong><span>Analyzed</span></div><div><strong data-metric="shortlisted_candidates">—</strong><span>Shortlisted</span></div><div><strong data-metric="average_match_score">—</strong><span>Average score</span></div></div><div class="activity-panel"><div class="section-label">Recent activity</div><div id="activity-feed"><p class="helper-text">Waiting for live activity...</p></div></div></div>{% endif %}
+</section>
+{% endif %}
+{% endblock %}
