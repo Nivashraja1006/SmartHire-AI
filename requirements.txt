@@ -2,7 +2,7 @@ Flask==2.3.3
 Flask-JWT-Extended==4.5.2
 Flask-SQLAlchemy==3.0.5
 Flask-Migrate==4.0.7
-
+Flask-Login==0.6.3
 spacy==3.5.0
 https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.5.0/en_core_web_sm-3.5.0-py3-none-any.whl
 
