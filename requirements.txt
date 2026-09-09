@@ -4,7 +4,7 @@ Flask-SQLAlchemy==3.0.5
 Flask-Migrate==4.0.7
 
 spacy==3.5.0
-en-core-web-sm==3.5.0
+https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.5.0/en_core_web_sm-3.5.0-py3-none-any.whl
 
 scikit-learn==1.5.2
 nltk==3.9.1
@@ -13,4 +13,5 @@ python-dotenv==1.0.1
 PyMuPDF==1.24.10
 PyMySQL==1.1.1
 
-eventlet==0.33.3
+eventlet==0.36.1
+gunicorn==21.2.0
