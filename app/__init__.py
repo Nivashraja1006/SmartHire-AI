@@ -66,6 +66,7 @@ def create_app(config_name=None):
     from app.routes.recruiter import bp as recruiter_bp
     from app.routes.recruiter_candidates import bp as recruiter_candidates_bp
     from app.routes.recruiter_matching import bp as recruiter_matching_bp
+    from app.routes.api_recruiter_matching import bp as api_recruiter_matching_bp
     from app.routes.recruiter_ranking import bp as recruiter_ranking_bp
     from app.routes.candidate import bp as candidate_bp
     from app.routes.notifications import bp as notifications_bp
@@ -80,6 +81,7 @@ def create_app(config_name=None):
     app.register_blueprint(recruiter_bp)
     app.register_blueprint(recruiter_candidates_bp)
     app.register_blueprint(recruiter_matching_bp)
+    app.register_blueprint(api_recruiter_matching_bp)
     app.register_blueprint(recruiter_ranking_bp)
     app.register_blueprint(candidate_bp)
     app.register_blueprint(notifications_bp)
