@@ -1,7 +1,7 @@
 import os
 import logging
 
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, redirect, request, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
@@ -47,6 +47,13 @@ def create_app(config_name=None):
     login_manager.login_view = app.config.get('LOGIN_VIEW', 'auth.login')
     login_manager.login_message = 'Please sign in to continue.'
     login_manager.login_message_category = 'info'
+
+    @login_manager.unauthorized_handler
+    def unauthorized():
+        if request_wants_json():
+            return jsonify({'success': False, 'error': 'Authentication required.'}), 401
+        return redirect(url_for(login_manager.login_view, next=request.url))
+
     socketio.init_app(
         app,
         cors_allowed_origins=app.config.get('SOCKETIO_CORS_ALLOWED_ORIGINS', '*'),
@@ -86,13 +93,11 @@ def create_app(config_name=None):
 
     @app.errorhandler(404)
     def not_found(e):
-        return render_template('errors/404.html', title='Page Not Found'), 404
+        return jsonify({'success': False, 'error': 'Not found.'}), 404
 
     @app.errorhandler(400)
     def bad_request(e):
-        if request_wants_json():
-            return jsonify({'success': False, 'error': 'Bad request.'}), 400
-        return render_template('errors/404.html', title='Bad request'), 400
+        return jsonify({'success': False, 'error': 'Bad request.'}), 400
 
     @app.errorhandler(401)
     def unauthorized(e):
@@ -112,14 +117,28 @@ def create_app(config_name=None):
 
     @app.errorhandler(403)
     def forbidden(e):
-        return render_template('errors/403.html', title='Access restricted'), 403
+        return jsonify({'success': False, 'error': 'Access forbidden.'}), 403
 
     @app.errorhandler(500)
     def server_error(e):
         logging.getLogger(__name__).exception('Unhandled application error')
-        if request_wants_json():
-            return jsonify({'success': False, 'error': 'An internal error occurred.'}), 500
-        return render_template('errors/500.html', title='Server Error'), 500
+        return jsonify({'success': False, 'error': 'An internal server error occurred.'}), 500
+
+    @app.after_request
+    def add_api_cors_headers(response):
+        origin = request.headers.get('Origin')
+        allowed_origins = {
+            item.strip()
+            for item in app.config.get('CORS_ORIGINS', '').split(',')
+            if item.strip()
+        }
+        if origin in allowed_origins:
+            response.headers['Access-Control-Allow-Origin'] = origin
+            response.headers['Access-Control-Allow-Credentials'] = 'true'
+            response.headers['Access-Control-Allow-Headers'] = 'Content-Type, X-CSRFToken'
+            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+            response.headers.add('Vary', 'Origin')
+        return response
 
     with app.app_context():
         try:
@@ -139,5 +158,4 @@ def create_app(config_name=None):
 
 
 def request_wants_json():
-    from flask import request
     return request.is_json or request.path.startswith('/api/')

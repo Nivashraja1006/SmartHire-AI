@@ -27,7 +27,7 @@ export default function UploadPage() {
 
     try {
       const response = await uploadResume(selectedFile);
-      const payload = response?.data ?? response;
+      const payload = response?.data?.data ?? response?.data ?? response;
 
       const result = {
         name: payload?.candidate?.name || "Candidate Profile",
@@ -43,7 +43,12 @@ export default function UploadPage() {
 
       setTimeout(() => router.push("/results"), 700);
     } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || "Something went wrong while analyzing the resume.");
+      setError(
+        err?.response?.data?.error ||
+          err?.response?.data?.message ||
+          err?.message ||
+          "Something went wrong while analyzing the resume."
+      );
     } finally {
       setIsAnalyzing(false);
     }
