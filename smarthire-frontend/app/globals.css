@@ -24,7 +24,11 @@ body {
     radial-gradient(circle at bottom right, rgba(168, 85, 247, 0.1), transparent 22%),
     #020817;
   color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: Inter, var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+.font-mono {
+  font-family: "IBM Plex Mono", var(--font-geist-mono), monospace;
 }
 
 * {
@@ -130,4 +134,13 @@ body {
 @keyframes floatOrb {
   0%, 100% { transform: translateY(0px) scale(0.98); }
   50% { transform: translateY(-18px) scale(1.04); }
+}
+
+@keyframes testimonial-in {
+  from { opacity: 0; transform: translate3d(0, 12px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+.animate-testimonial-in {
+  animation: testimonial-in 550ms ease-out both;
 }
