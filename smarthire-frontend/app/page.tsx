@@ -5,37 +5,13 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
-  Gauge,
-  ScanSearch,
-  ShieldAlert,
+  Bot,
+  Flag,
   Sparkles,
-  Upload,
+  User,
   Zap,
   Quote,
 } from "lucide-react";
-
-const lifecycleSteps = [
-  {
-    icon: Upload,
-    title: "Upload",
-  },
-  {
-    icon: ScanSearch,
-    title: "Profile",
-  },
-  {
-    icon: Gauge,
-    title: "Score",
-  },
-  {
-    icon: ShieldAlert,
-    title: "Detect",
-  },
-  {
-    icon: Sparkles,
-    title: "Clean",
-  },
-];
 
 const testimonials = [
   { initials: "MC", name: "Maya Chen", role: "VP People, Northstar", rating: 5, accent: "#22d3ee", quote: "SmartHire turned a week of resume triage into one clear afternoon. The signal is remarkably easy to trust." },
@@ -54,55 +30,103 @@ const weeklyBars = [
   { day: "S", value: 96, color: "from-emerald-400 to-emerald-300" },
 ];
 
-function LifecycleConveyor() {
-  const [progress, setProgress] = useState(0);
+const raceMilestones = ["Upload", "Review", "Fix issues", "Validate", "Ready"];
+
+function SpeedRaceTrack({
+  accent,
+  complete,
+  icon: Icon,
+  label,
+  progress,
+  status,
+  time,
+}: {
+  accent: "red" | "green";
+  complete?: boolean;
+  icon: typeof User;
+  label: string;
+  progress: number;
+  status: string;
+  time: string;
+}) {
+  const isGreen = accent === "green";
+  const accentText = isGreen ? "text-emerald-300" : "text-red-300";
+  const accentBorder = isGreen ? "border-emerald-400/25" : "border-red-400/25";
+  const badgeBackground = isGreen ? "bg-emerald-400/10" : "bg-red-400/10";
+  const fill = isGreen ? "from-emerald-400 to-teal-300" : "from-red-400 to-rose-300";
+  const glow = isGreen ? "rgba(52,211,153,0.55)" : "rgba(248,113,113,0.45)";
+
+  return (
+    <div className={`rounded-2xl border ${accentBorder} bg-[#111319] p-5 sm:p-6`}>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${badgeBackground} ${accentText}`}>
+            <Icon className="h-5 w-5" />
+          </div>
+          <span className="text-base font-semibold text-[#eef0f5]">{label}</span>
+        </div>
+        {complete && <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 font-mono text-[10px] tracking-[0.14em] text-emerald-300">COMPLETE</span>}
+      </div>
+
+      <div className="relative mt-7 h-3 rounded-full bg-white/[0.08]">
+        <div className={`h-full rounded-full bg-gradient-to-r ${fill} transition-[width] duration-75`} style={{ width: `${progress * 100}%`, boxShadow: `0 0 14px ${glow}` }} />
+        <span className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/80 bg-white" style={{ left: `${Math.max(progress * 100, 1)}%`, boxShadow: `0 0 12px 3px ${glow}` }} />
+      </div>
+
+      <div className="mt-3 grid grid-cols-5 gap-2">
+        {raceMilestones.map((milestone, index) => {
+          const milestoneProgress = index / (raceMilestones.length - 1);
+          const passed = progress >= milestoneProgress;
+          return <span key={milestone} className={`text-center font-mono text-[9px] leading-4 transition-colors duration-300 sm:text-[10px] ${passed ? accentText : "text-[#8b90a3]"}`}>{milestone}</span>;
+        })}
+      </div>
+
+      <div className="mt-5 flex items-center justify-between gap-4 border-t border-white/[0.08] pt-4">
+        <span className={`text-xs ${complete ? "text-emerald-300" : "text-[#8b90a3]"}`}>{status}</span>
+        <span className={`shrink-0 font-mono text-sm font-semibold ${accentText}`}>{time}</span>
+      </div>
+    </div>
+  );
+}
+
+function SpeedRaceComparison() {
+  const [elapsed, setElapsed] = useState(0);
+  const cycleDuration = 8000;
+  const aiDuration = 5500;
 
   useEffect(() => {
     let frameId: number;
     const startedAt = performance.now();
     const animate = (now: number) => {
-      setProgress(((now - startedAt) / 9000) % 1);
+      setElapsed((now - startedAt) % cycleDuration);
       frameId = requestAnimationFrame(animate);
     };
     frameId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(frameId);
   }, []);
 
-  const activeStep = Math.min(lifecycleSteps.length - 1, Math.floor(progress * lifecycleSteps.length));
+  const aiProgress = Math.min(elapsed / aiDuration, 1);
+  const manualProgress = Math.min(elapsed / (cycleDuration * 28), 0.08);
+  const aiComplete = aiProgress >= 1;
+  const manualHours = (elapsed / 3000).toFixed(1);
+  const aiMinutes = (aiProgress * 6).toFixed(1);
 
   return (
-    <section className="relative mx-auto max-w-7xl px-6 pb-10 lg:px-8">
-      <div className="overflow-hidden rounded-[28px] border border-white/[0.08] bg-[#111319] p-6 shadow-[0_30px_90px_rgba(15,23,42,0.32)] sm:p-8">
-        <div className="mb-8 flex items-end justify-between gap-4">
-          <div>
-            <p className="font-mono text-[11px] tracking-[0.24em] text-cyan-300">LIFECYCLE PREVIEW</p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-[#eef0f5] sm:text-3xl">From raw resume to ready signal</h2>
-          </div>
-          <span className="hidden rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 font-mono text-[10px] tracking-[0.18em] text-emerald-300 sm:block">AUTOMATED FLOW</span>
-        </div>
+    <section className="relative mx-auto max-w-7xl px-6 pb-24 pt-10 lg:px-8">
+      <div className="mb-9 max-w-3xl">
+        <p className="font-mono text-[11px] tracking-[0.24em] text-indigo-300">HOW IT WORKS</p>
+        <h2 className="mt-3 text-3xl font-bold tracking-tight text-[#eef0f5] sm:text-4xl">The same dataset. Two very different afternoons.</h2>
+        <p className="mt-4 text-base leading-7 text-[#8b90a3]">Watch a 200K-row file move through manual review versus DataMedic, side by side.</p>
+      </div>
 
-        <div className="relative px-[7%] pb-2 pt-4">
-          <div className="absolute left-[7%] right-[7%] top-[27px] h-1 rounded-full bg-white/[0.08]" />
-          <div className="absolute left-[7%] top-[27px] h-1 rounded-full bg-gradient-to-r from-emerald-400 via-cyan-400 to-indigo-500 shadow-[0_0_14px_rgba(34,211,238,0.55)]" style={{ width: `${progress * 86}%` }} />
-          <div className="absolute top-[21px] h-[14px] w-[14px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_35%_30%,white_0%,#a5f3fc_35%,#22d3ee_70%)] shadow-[0_0_8px_3px_rgba(34,211,238,0.55)]" style={{ left: `${7 + progress * 86}%` }} />
+      <div className="space-y-4">
+        <SpeedRaceTrack accent="red" icon={User} label="Manual review" progress={manualProgress} status="analyst hours spent, still in progress" time={`${manualHours} hrs`} />
+        <SpeedRaceTrack accent="green" complete={aiComplete} icon={Bot} label="DataMedic AI" progress={aiProgress} status={aiComplete ? "done — ready for modeling" : "cleaning in progress"} time={`${aiMinutes} min`} />
+      </div>
 
-          <div className="relative grid grid-cols-5 gap-2">
-            {lifecycleSteps.map(({ icon: Icon, title }, index) => {
-              const isActive = index === activeStep;
-              const isPassed = index < activeStep;
-              return (
-                <div key={title} className="flex min-w-0 flex-col items-center text-center">
-                  <div className={`relative flex h-14 w-14 items-center justify-center rounded-2xl border transition-all duration-500 sm:h-16 sm:w-16 ${isActive ? "border-cyan-300/50 bg-gradient-to-br from-indigo-500 to-cyan-400 text-white shadow-[0_0_28px_rgba(34,211,238,0.38)]" : isPassed ? "border-emerald-300/30 bg-gradient-to-br from-emerald-400 to-cyan-400 text-[#071318]" : "border-white/10 bg-[#1b1e27] text-[#8b90a3]"}`}>
-                    {isActive && <span className="absolute inset-[-7px] animate-ping rounded-2xl border border-cyan-300/50" />}
-                    <Icon className="relative z-10 h-5 w-5 sm:h-6 sm:w-6" />
-                  </div>
-                  <span className={`mt-3 font-mono text-[9px] tracking-[0.16em] transition-colors sm:text-[10px] ${isActive ? "text-cyan-300" : isPassed ? "text-emerald-300" : "text-[#8b90a3]"}`}>STEP {index + 1}</span>
-                  <span className="mt-1 text-xs font-medium text-[#eef0f5] sm:text-sm">{title}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+      <div className="mt-7 flex items-center justify-center gap-2 font-mono text-[10px] tracking-[0.12em] text-emerald-300 sm:text-xs">
+        <Flag className="h-4 w-4" />
+        <span>DataMedic finishes ~30x faster on the same workload</span>
       </div>
     </section>
   );
@@ -302,7 +326,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <LifecycleConveyor />
+      <SpeedRaceComparison />
 
       <section id="features" className="relative mx-auto grid max-w-7xl gap-6 px-6 pb-24 lg:grid-cols-2 lg:px-8">
         <DatasetHealthPanel />
