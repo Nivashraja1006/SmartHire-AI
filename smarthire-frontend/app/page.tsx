@@ -44,7 +44,15 @@ const testimonials = [
   { initials: "DK", name: "David Kim", role: "COO, Atlas Works", rating: 5, accent: "#818cf8", quote: "We finally have a clean view of candidate quality across every role, not just a pile of disconnected spreadsheets." },
 ];
 
-const weeklyBars = [64, 71, 68, 79, 84, 91, 96];
+const weeklyBars = [
+  { day: "M", value: 64, color: "from-indigo-500 to-indigo-400" },
+  { day: "T", value: 71, color: "from-indigo-500 to-cyan-400" },
+  { day: "W", value: 68, color: "from-indigo-500 to-cyan-400" },
+  { day: "T", value: 79, color: "from-cyan-500 to-cyan-300" },
+  { day: "F", value: 84, color: "from-cyan-500 to-emerald-300" },
+  { day: "S", value: 91, color: "from-cyan-400 to-emerald-300" },
+  { day: "S", value: 96, color: "from-emerald-400 to-emerald-300" },
+];
 
 function LifecycleConveyor() {
   const [progress, setProgress] = useState(0);
@@ -130,7 +138,7 @@ function DatasetHealthPanel() {
         <p className="max-w-[220px] text-sm leading-6 text-[#8b90a3]">Up <span className="font-mono text-emerald-300">+34%</span> vs last week, driven by fewer duplicate and null-value flags.</p>
       </div>
       <div className="mt-8 flex h-24 items-end justify-between gap-2 border-b border-white/[0.08] px-1">
-        {weeklyBars.map((bar, index) => <div key={index} className="flex h-full flex-1 flex-col items-center justify-end gap-2"><div className="w-full max-w-7 rounded-t-sm bg-gradient-to-t from-indigo-500 via-cyan-400 to-emerald-300 transition-all duration-700" style={{ height: `${score ? bar : 0}%`, transitionDelay: `${index * 90}ms` }} /><span className="font-mono text-[9px] text-[#8b90a3]">{["M", "T", "W", "T", "F", "S", "S"][index]}</span></div>)}
+        {weeklyBars.map((bar, index) => <div key={`${bar.day}-${index}`} className="flex h-full flex-1 flex-col items-center justify-end gap-2"><div className={`w-full max-w-7 rounded-t-sm bg-gradient-to-t ${bar.color} transition-all duration-700`} style={{ height: `${score ? bar.value : 0}%`, transitionDelay: `${index * 90}ms` }} /><span className="font-mono text-[9px] text-[#8b90a3]">{bar.day}</span></div>)}
       </div>
     </div>
   );
