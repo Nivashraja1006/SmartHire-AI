@@ -76,6 +76,13 @@ class Phase10TestCase(unittest.TestCase):
         end = date.today().isoformat()
         self.assertEqual(self.client.get(f'/api/recruiter/analytics/trends?start_date={start}&end_date={end}').status_code, 200)
 
+    def test_match_page_handles_warmup_html_responses_without_raw_json_parse_error(self):
+        response = self.client.get(f'/recruiter/jobs/{self.job.id}/candidates/{self.application.candidate_id}/match')
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn('fetchJsonWithRetry', html)
+        self.assertIn('waking up', html.lower())
+
 
 if __name__ == '__main__':
     unittest.main()
