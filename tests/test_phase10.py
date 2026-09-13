@@ -51,6 +51,18 @@ class Phase10TestCase(unittest.TestCase):
         self.assertEqual(report.status_code, 200)
         self.assertIn(b'Candidate,Job,Score', report.data)
 
+    def test_recruiter_applications_endpoint_returns_dropdown_data(self):
+        response = self.client.get('/api/recruiter/applications')
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+        self.assertIn('applications', payload)
+        self.assertEqual(len(payload['applications']), 1)
+        app = payload['applications'][0]
+        self.assertEqual(app['id'], self.application.id)
+        self.assertEqual(app['name'], 'Test Candidate')
+        self.assertEqual(app['title'], 'Python Engineer')
+        self.assertEqual(app['label'], 'Test Candidate · Python Engineer')
+
     def test_custom_date_range_and_unauthorized_job_is_hidden(self):
         other = User(full_name='Other Recruiter', email='other@example.com', role=Role.query.filter_by(name=Role.RECRUITER).one())
         other.set_password('password-123')

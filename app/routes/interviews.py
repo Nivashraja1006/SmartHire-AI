@@ -91,6 +91,27 @@ def list_interviews():
     return render_template('recruiter/interviews.html', title='Interview Management', interviews=rows)
 
 
+@bp.route('/api/recruiter/applications')
+@role_required(Role.RECRUITER)
+def list_applications_for_dropdown():
+    rows = Application.query.join(Job).filter(Job.recruiter_id == current_user.id).order_by(Application.id.desc()).all()
+    payload = []
+    for application in rows:
+        candidate_name = application.candidate.full_name if application.candidate else 'Unknown candidate'
+        job_title = application.job.title if application.job else 'Unknown job'
+        payload.append({
+            'id': application.id,
+            'candidate_id': application.candidate_id,
+            'job_id': application.job_id,
+            'name': candidate_name,
+            'title': job_title,
+            'candidate_name': candidate_name,
+            'job_title': job_title,
+            'label': f'{candidate_name} · {job_title}',
+        })
+    return jsonify({'success': True, 'applications': payload})
+
+
 @bp.route('/recruiter/interviews/create', methods=['GET', 'POST'])
 @role_required(Role.RECRUITER)
 def create_interview():
